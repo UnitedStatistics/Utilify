@@ -86,6 +86,24 @@ export class UserCommand extends Command {
       }
     });
 
+    try {
+      user.send({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              [
+                `You've been warned in **${interactionOrMessage.guild!.name}**.`,
+                `**Moderator**: ${moderator.tag}`,
+                `**Reason**: ${reason}`
+              ].join("\n")
+            )
+            .setColor(colors.danger)
+        ]
+      });
+    } catch {
+      this.container.client.logger.warn(`Couldn't DM ${user.tag}.`);
+    }
+
     return reply(interactionOrMessage, {
       embeds: [new EmbedBuilder().setDescription(`**${user.tag}** has been warned.`).setColor(colors.success)]
     });
