@@ -23,3 +23,6 @@ pnpm-lock.yaml
 
 # Environment variables
 **/*.env*
+
+# Database
+prisma/*.sqlite
