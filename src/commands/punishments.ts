@@ -84,6 +84,7 @@ export class UserCommand extends Command {
               name: punishment.id,
               value: [
                 `**Type**: ${punishmentTypes[punishment.type]}`,
+                `**Moderator**: ${this.container.client.users.cache.get(punishment.moderatorId)?.tag}`,
                 punishment.type === PunishmentType.Mute && punishment.length
                   ? `**Length**: ${ms(punishment.length, { long: true })}`
                   : null,

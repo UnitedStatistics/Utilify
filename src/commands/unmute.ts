@@ -3,14 +3,13 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { PunishmentType, colors } from "../consts";
-import { db } from "../lib/db";
+import { colors } from "../consts";
 import { getGuildId } from "../lib/utils/getGuildId";
 import { reply } from "../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
-  description: "Warn a user.",
-  requiredUserPermissions: ["KickMembers"]
+  description: "Unmute a user.",
+  requiredUserPermissions: ["MuteMembers"]
 })
 export class UserCommand extends Command {
   // Register Chat Input and Context Menu command
@@ -23,18 +22,18 @@ export class UserCommand extends Command {
         options: [
           {
             name: "user",
-            description: "The user to warn.",
+            description: "The user to unmute.",
             type: ApplicationCommandOptionType.User,
             required: true
           },
           {
             name: "reason",
-            description: "Why you want to warn this user.",
+            description: "Why you want to unmute this user.",
             type: ApplicationCommandOptionType.String,
             required: false
           }
         ],
-        defaultMemberPermissions: [PermissionFlagsBits.KickMembers]
+        defaultMemberPermissions: [PermissionFlagsBits.MuteMembers]
       },
       {
         guildIds: getGuildId()
@@ -53,26 +52,26 @@ export class UserCommand extends Command {
   }
 
   private async respond(interactionOrMessage: Message | Command.ChatInputCommandInteraction, args?: Args) {
-    const user =
-			interactionOrMessage instanceof Message ? await args!.pick("user").catch(() => null) : interactionOrMessage.options.getUser("user");
+    const member =
+			interactionOrMessage instanceof Message
+			  ? await args!.pick("member").catch(() => null)
+			  : (interactionOrMessage.options.getMember("user") as GuildMember | null);
 
     const moderator = interactionOrMessage instanceof Message ? interactionOrMessage.author : interactionOrMessage.user;
 
-    if (!user)
+    if (!member)
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You need to specify a member.").setColor(colors.danger)]
       });
 
-    const member = interactionOrMessage.guild!.members.cache.get(user.id);
-
     if (member!.roles.highest.position >= (interactionOrMessage.member as GuildMember)!.roles.highest.position)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You can't warn a member that has a higher/equal role to you.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You can't unmute a member that has a higher/equal role to you.").setColor(colors.danger)]
       });
 
-    if (!member?.manageable)
+    if (!member?.moderatable)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("I can't warn that member.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("I can't mute that member.").setColor(colors.danger)]
       });
 
     const reason =
@@ -80,43 +79,28 @@ export class UserCommand extends Command {
 			  ? await args!.rest("string").catch(() => null)
 			  : interactionOrMessage.options.getString("reason")) || "No reason specified.";
 
-    await db.user.upsert({
-      where: {
-        id: user.id
-      },
-      create: {
-        id: user.id
-      },
-      update: {}
-    });
+    member.timeout(null, reason);
 
-    await db.punishment.create({
-      data: {
-        reason,
-        type: PunishmentType.Warn,
-        userId: user.id,
-        moderatorId: moderator.id
-      }
-    });
-
-    user.send({
-      embeds: [
-        new EmbedBuilder()
-          .setDescription(
-            [
-              `You've been warned in **${interactionOrMessage.guild!.name}**.`,
-              `**Moderator**: ${moderator.tag}`,
-              `**Reason**: ${reason}`
-            ].join("\n")
-          )
-          .setColor(colors.danger)
-      ]
-    }).catch(() => {
-      this.container.client.logger.warn(`Couldn't DM ${user.tag}.`);
-    });
+    try {
+      member.send({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              [
+                `You've been unmuted in **${interactionOrMessage.guild!.name}**.`,
+                `**Moderator**: ${moderator.tag}`,
+                `**Reason**: ${reason}`
+              ].join("\n")
+            )
+            .setColor(colors.danger)
+        ]
+      });
+    } catch {
+      this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`);
+    }
 
     return reply(interactionOrMessage, {
-      embeds: [new EmbedBuilder().setDescription(`**${user.tag}** has been warned.`).setColor(colors.success)]
+      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been unmuted.`).setColor(colors.success)]
     });
   }
 }

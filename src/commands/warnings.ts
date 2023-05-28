@@ -80,7 +80,11 @@ export class UserCommand extends Command {
           .setFields(
             punishments.map((punishment) => ({
               name: punishment.id,
-              value: [`**Warned on**: <t:${Math.round(punishment.punishedAt.getTime() / 1000)}:f>`, `**Reason**: ${punishment.reason}`]
+              value: [
+                `**Moderator**: ${this.container.client.users.cache.get(punishment.moderatorId)?.tag}`,
+                `**Warned on**: <t:${Math.round(punishment.punishedAt.getTime() / 1000)}:f>`,
+                `**Reason**: ${punishment.reason}`
+              ]
                 .filter(Boolean)
                 .join("\n")
             }))
