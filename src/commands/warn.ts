@@ -60,19 +60,19 @@ export class UserCommand extends Command {
 
     if (!user)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You need to specify a member.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You need to specify a user.").setColor(colors.danger)]
       });
 
     const member = interactionOrMessage.guild!.members.cache.get(user.id);
 
     if (member!.roles.highest.position >= (interactionOrMessage.member as GuildMember)!.roles.highest.position)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You can't warn a member that has a higher/equal role to you.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You can't warn a user that has a higher/equal role to you.").setColor(colors.danger)]
       });
 
-    if (!member?.manageable)
+    if (!member!.manageable)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("I can't warn that member.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("I can't warn that user.").setColor(colors.danger)]
       });
 
     const reason =

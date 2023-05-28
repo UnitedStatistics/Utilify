@@ -1,15 +1,14 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
-import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
 import { colors } from "../consts";
 import { getGuildId } from "../lib/utils/getGuildId";
 import { reply } from "../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
-  description: "Unmute a user.",
-  requiredUserPermissions: ["MuteMembers"]
+  description: "Unban a user.",
+  requiredUserPermissions: ["BanMembers"]
 })
 export class UserCommand extends Command {
   // Register Chat Input and Context Menu command
@@ -22,18 +21,18 @@ export class UserCommand extends Command {
         options: [
           {
             name: "user",
-            description: "The user to unmute.",
+            description: "The user to unban.",
             type: ApplicationCommandOptionType.User,
             required: true
           },
           {
             name: "reason",
-            description: "Why you want to unmute this user.",
+            description: "Why you want to unban this user.",
             type: ApplicationCommandOptionType.String,
             required: false
           }
         ],
-        defaultMemberPermissions: [PermissionFlagsBits.MuteMembers]
+        defaultMemberPermissions: [PermissionFlagsBits.BanMembers]
       },
       {
         guildIds: getGuildId()
@@ -52,26 +51,14 @@ export class UserCommand extends Command {
   }
 
   private async respond(interactionOrMessage: Message | Command.ChatInputCommandInteraction, args?: Args) {
-    const member =
-			interactionOrMessage instanceof Message
-			  ? await args!.pick("member").catch(() => null)
-			  : (interactionOrMessage.options.getMember("user") as GuildMember | null);
+    const user =
+			interactionOrMessage instanceof Message ? await args!.pick("user").catch(() => null) : interactionOrMessage.options.getUser("user");
 
     const moderator = interactionOrMessage instanceof Message ? interactionOrMessage.author : interactionOrMessage.user;
 
-    if (!member)
+    if (!user)
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You need to specify a user.").setColor(colors.danger)]
-      });
-
-    if (member.roles.highest.position >= (interactionOrMessage.member as GuildMember)!.roles.highest.position)
-      return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You can't unmute a user that has a higher/equal role to you.").setColor(colors.danger)]
-      });
-
-    if (!member.moderatable)
-      return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("I can't mute that user.").setColor(colors.danger)]
       });
 
     const reason =
@@ -79,15 +66,21 @@ export class UserCommand extends Command {
 			  ? await args!.rest("string").catch(() => null)
 			  : interactionOrMessage.options.getString("reason")) || "No reason specified.";
 
-    member.timeout(null, reason);
+    const bans = await interactionOrMessage.guild!.bans.fetch();
+    if (!bans.has(user.id))
+      return reply(interactionOrMessage, {
+        embeds: [new EmbedBuilder().setDescription("That user is not banned.")]
+      });
+
+    await interactionOrMessage.guild!.members.unban(user.id);
 
     try {
-      member.send({
+      user.send({
         embeds: [
           new EmbedBuilder()
             .setDescription(
               [
-                `You've been unmuted in **${interactionOrMessage.guild!.name}**.`,
+                `You've been banned from **${interactionOrMessage.guild!.name}**.`,
                 `**Moderator**: ${moderator.tag}`,
                 `**Reason**: ${reason}`
               ].join("\n")
@@ -96,11 +89,11 @@ export class UserCommand extends Command {
         ]
       });
     } catch {
-      this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`);
+      this.container.client.logger.warn(`Couldn't DM ${user.tag}.`);
     }
 
     return reply(interactionOrMessage, {
-      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been unmuted.`).setColor(colors.success)]
+      embeds: [new EmbedBuilder().setDescription(`**${user.tag}** has been unbanned.`).setColor(colors.success)]
     });
   }
 }

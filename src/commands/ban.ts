@@ -3,15 +3,14 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import ms from "ms";
 import { PunishmentType, colors } from "../consts";
 import { db } from "../lib/db";
 import { getGuildId } from "../lib/utils/getGuildId";
 import { reply } from "../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
-  description: "Mute a user.",
-  requiredUserPermissions: ["MuteMembers"]
+  description: "Ban a user.",
+  requiredUserPermissions: ["BanMembers"]
 })
 export class UserCommand extends Command {
   // Register Chat Input and Context Menu command
@@ -24,24 +23,18 @@ export class UserCommand extends Command {
         options: [
           {
             name: "user",
-            description: "The user to mute.",
+            description: "The user to ban.",
             type: ApplicationCommandOptionType.User,
             required: true
           },
           {
-            name: "length",
-            description: "How long this user should be muted.",
-            type: ApplicationCommandOptionType.String,
-            required: true
-          },
-          {
             name: "reason",
-            description: "Why you want to mute this user.",
+            description: "Why you want to ban this user.",
             type: ApplicationCommandOptionType.String,
             required: false
           }
         ],
-        defaultMemberPermissions: [PermissionFlagsBits.MuteMembers]
+        defaultMemberPermissions: [PermissionFlagsBits.BanMembers]
       },
       {
         guildIds: getGuildId()
@@ -69,25 +62,17 @@ export class UserCommand extends Command {
 
     if (!member)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You need to specify a user.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You need to specify a member.").setColor(colors.danger)]
       });
 
     if (member.roles.highest.position >= (interactionOrMessage.member as GuildMember)!.roles.highest.position)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You can't mute a user that has a higher/equal role to you.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You can't ban a member that has a higher/equal role to you.").setColor(colors.danger)]
       });
 
-    if (!member.moderatable)
+    if (!member.bannable)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("I can't mute that user.").setColor(colors.danger)]
-      });
-
-    const length =
-			interactionOrMessage instanceof Message ? await args!.pick("string").catch(() => null) : interactionOrMessage.options.getString("length");
-
-    if (!length)
-      return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You have to specify a length.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("I can't ban that member.").setColor(colors.danger)]
       });
 
     const reason =
@@ -95,7 +80,25 @@ export class UserCommand extends Command {
 			  ? await args!.rest("string").catch(() => null)
 			  : interactionOrMessage.options.getString("reason")) || "No reason specified.";
 
-    member.timeout(ms(length), reason);
+    try {
+      member.send({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              [
+                `You've been banned from **${interactionOrMessage.guild!.name}**.`,
+                `**Moderator**: ${moderator.tag}`,
+                `**Reason**: ${reason}`
+              ].join("\n")
+            )
+            .setColor(colors.danger)
+        ]
+      });
+    } catch {
+      this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`);
+    }
+
+    member.ban({ reason });
 
     await db.user.upsert({
       where: {
@@ -110,42 +113,14 @@ export class UserCommand extends Command {
     await db.punishment.create({
       data: {
         reason,
-        type: PunishmentType.Mute,
-        length: ms(length),
+        type: PunishmentType.Ban,
         userId: member.id,
         moderatorId: moderator.id
       }
     });
 
-    try {
-      member.send({
-        embeds: [
-          new EmbedBuilder()
-            .setDescription(
-              [
-                `You've been muted in **${interactionOrMessage.guild!.name}**.`,
-                `**Moderator**: ${moderator.tag}`,
-                `**Length**: ${ms(ms(length), { long: true })}`,
-                `**Reason**: ${reason}`
-              ].join("\n")
-            )
-            .setColor(colors.danger)
-        ]
-      });
-    } catch {
-      this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`);
-    }
-
     return reply(interactionOrMessage, {
-      embeds: [
-        new EmbedBuilder()
-          .setDescription(
-            `**${member.user.tag}** has been muted for ${ms(ms(length), {
-              long: true
-            })}.`
-          )
-          .setColor(colors.success)
-      ]
+      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been banned.`).setColor(colors.success)]
     });
   }
 }
