@@ -10,11 +10,7 @@ node_modules/
 
 # Environment variables
 .DS_Store
-
 dist/
-
-# Ignore the config file (contains sensitive information such as tokens)
-config.ts
 
 # Ignore heapsnapshot and log files
 *.heapsnapshot
@@ -22,6 +18,8 @@ config.ts
 
 # Ignore npm lockfiles file
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Environment variables
 **/*.env*
