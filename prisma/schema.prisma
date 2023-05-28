@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./db.sqlite"
+  provider     = "sqlite"
+  url          = "file:./db.sqlite"
+  relationMode = "prisma"
 }
 
 model User {
@@ -16,8 +17,14 @@ model User {
 }
 
 model Punishment {
-  id     String @id @default(cuid())
-  type   Int
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  id          String   @id @default(cuid())
+  reason      String
+  type        Int
+  punishedAt  DateTime @default(now())
+  length      Int?
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  moderatorId String
+
+  @@index([userId])
 }
