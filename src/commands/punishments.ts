@@ -65,11 +65,12 @@ export class UserCommand extends Command {
       }
     });
 
-    if(!punishments.length) return reply(interactionOrMessage, {
-      embeds: [
-        new EmbedBuilder().setDescription(`${user ? "That user doesn't" : "You don't"} have any punishments.`).setColor(colors.danger)
-      ]
-    });
+    if (!punishments.length)
+      return reply(interactionOrMessage, {
+        embeds: [
+          new EmbedBuilder().setDescription(`${user ? "That user doesn't" : "You don't"} have any punishments.`).setColor(colors.danger)
+        ]
+      });
 
     return reply(interactionOrMessage, {
       embeds: [
