@@ -1,7 +1,7 @@
 import "./lib/setup";
 
 import { LogLevel, SapphireClient } from "@sapphire/framework";
-import { GatewayIntentBits } from "discord.js";
+import { ActivityType, GatewayIntentBits } from "discord.js";
 
 const client = new SapphireClient({
   defaultPrefix: ">",
@@ -10,7 +10,15 @@ const client = new SapphireClient({
     level: LogLevel.Debug
   },
   intents: [GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent],
-  loadMessageCommandListeners: true
+  loadMessageCommandListeners: true,
+  presence: {
+    activities: [
+      {
+        name: "for bad actors",
+        type: ActivityType.Watching
+      }
+    ]
+  }
 });
 
 const main = async () => {
