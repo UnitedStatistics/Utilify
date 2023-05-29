@@ -80,7 +80,7 @@ export class UserCommand extends Command {
           new EmbedBuilder()
             .setDescription(
               [
-                `You've been banned from **${interactionOrMessage.guild!.name}**.`,
+                `You've been unbanned from **${interactionOrMessage.guild!.name}**.`,
                 `**Moderator**: ${moderator.tag}`,
                 `**Reason**: ${reason}`
               ].join("\n")
