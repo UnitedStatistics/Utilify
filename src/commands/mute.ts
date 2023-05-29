@@ -138,9 +138,9 @@ export class UserCommand extends Command {
       embeds: [
         new EmbedBuilder()
           .setDescription(
-            `**${member.user.tag}** has been muted for ${ms(ms(length), {
+            `**${member.user.tag}** has been muted for **${ms(ms(length), {
               long: true
-            })}.`
+            })}**.`
           )
           .setColor(colors.success)
       ]
