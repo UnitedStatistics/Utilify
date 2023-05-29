@@ -23,3 +23,5 @@ export const punishmentTypes: { [key: number]: string } = {
   [PunishmentType.Kick]: "Kick",
   [PunishmentType.Ban]: "Ban"
 };
+
+export const okayRoles = ["1112295242964676608", "1064517980328824932", "1064518042169655326", "1064518152081379380", "1064518245840859207", "1064518340602777690"];

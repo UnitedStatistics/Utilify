@@ -3,7 +3,7 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { colors } from "../consts";
+import { colors, okayRoles } from "../consts";
 import { getGuildId } from "../lib/utils/getGuildId";
 import { reply } from "../lib/utils/reply";
 
@@ -110,7 +110,14 @@ export class UserCommand extends Command {
 
     if (
       member.id !== (interactionOrMessage.member as GuildMember).id &&
-			member.roles.highest.position >= (interactionOrMessage.member as GuildMember).roles.highest.position
+			member.roles.cache
+			  .filter((role) => okayRoles.includes(role.id))
+			  .sort((a, z) => z.position - a.position)
+			  .first()!.position >=
+				(interactionOrMessage.member as GuildMember).roles.cache
+				  .filter((role) => okayRoles.includes(role.id))
+				  .sort((a, z) => z.position - a.position)
+				  .first()!.position
     )
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("That user has roles that are higher/equal to yours.")]

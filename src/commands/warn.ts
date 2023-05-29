@@ -3,7 +3,7 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { PunishmentType, colors } from "../consts";
+import { PunishmentType, colors, okayRoles } from "../consts";
 import { db } from "../lib/db";
 import { getGuildId } from "../lib/utils/getGuildId";
 import { reply } from "../lib/utils/reply";
@@ -65,7 +65,16 @@ export class UserCommand extends Command {
 
     const member = interactionOrMessage.guild!.members.cache.get(user.id);
 
-    if (member!.roles.highest.position >= (interactionOrMessage.member as GuildMember)!.roles.highest.position)
+    if (
+			member!.roles.cache
+			  .filter((role) => okayRoles.includes(role.id))
+			  .sort((a, z) => z.position - a.position)
+			  .first()!.position >=
+			(interactionOrMessage.member as GuildMember)!.roles.cache
+			  .filter((role) => okayRoles.includes(role.id))
+			  .sort((a, z) => z.position - a.position)
+			  .first()!.position
+    )
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You can't warn a user that has a higher/equal role to you.").setColor(colors.danger)]
       });
