@@ -74,23 +74,19 @@ export class UserCommand extends Command {
 
     await interactionOrMessage.guild!.members.unban(user.id);
 
-    try {
-      user.send({
-        embeds: [
-          new EmbedBuilder()
-            .setDescription(
-              [
-                `You've been unbanned from **${interactionOrMessage.guild!.name}**.`,
-                `**Moderator**: ${moderator.tag}`,
-                `**Reason**: ${reason}`
-              ].join("\n")
-            )
-            .setColor(colors.danger)
-        ]
-      });
-    } catch {
-      this.container.client.logger.warn(`Couldn't DM ${user.tag}.`);
-    }
+    user.send({
+      embeds: [
+        new EmbedBuilder()
+          .setDescription(
+            [
+              `You've been unbanned from **${interactionOrMessage.guild!.name}**.`,
+              `**Moderator**: ${moderator.tag}`,
+              `**Reason**: ${reason}`
+            ].join("\n")
+          )
+          .setColor(colors.danger)
+      ]
+    }).catch(() => this.container.client.logger.warn(`Couldn't DM ${user.tag}.`));
 
     return reply(interactionOrMessage, {
       embeds: [new EmbedBuilder().setDescription(`**${user.tag}** has been unbanned.`).setColor(colors.success)]

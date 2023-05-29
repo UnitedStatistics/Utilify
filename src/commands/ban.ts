@@ -80,8 +80,8 @@ export class UserCommand extends Command {
 			  ? await args!.rest("string").catch(() => null)
 			  : interactionOrMessage.options.getString("reason")) || "No reason specified.";
 
-    try {
-      member.send({
+    member
+      .send({
         embeds: [
           new EmbedBuilder()
             .setDescription(
@@ -93,10 +93,8 @@ export class UserCommand extends Command {
             )
             .setColor(colors.danger)
         ]
-      });
-    } catch {
-      this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`);
-    }
+      })
+      .catch(() => this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`));
 
     member.ban({ reason });
 

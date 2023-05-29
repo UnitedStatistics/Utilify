@@ -81,8 +81,8 @@ export class UserCommand extends Command {
 
     member.timeout(null, reason);
 
-    try {
-      member.send({
+    member
+      .send({
         embeds: [
           new EmbedBuilder()
             .setDescription(
@@ -94,10 +94,8 @@ export class UserCommand extends Command {
             )
             .setColor(colors.danger)
         ]
-      });
-    } catch {
-      this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`);
-    }
+      })
+      .catch(() => this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`));
 
     return reply(interactionOrMessage, {
       embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been unmuted.`).setColor(colors.success)]

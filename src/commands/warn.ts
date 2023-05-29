@@ -111,9 +111,7 @@ export class UserCommand extends Command {
           )
           .setColor(colors.danger)
       ]
-    }).catch(() => {
-      this.container.client.logger.warn(`Couldn't DM ${user.tag}.`);
-    });
+    }).catch(() => this.container.client.logger.warn(`Couldn't DM ${user.tag}.`));
 
     return reply(interactionOrMessage, {
       embeds: [new EmbedBuilder().setDescription(`**${user.tag}** has been warned.`).setColor(colors.success)]
