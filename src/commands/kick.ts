@@ -65,7 +65,16 @@ export class UserCommand extends Command {
         embeds: [new EmbedBuilder().setDescription("You need to specify a member.").setColor(colors.danger)]
       });
 
-    if (member.roles.cache.filter((role) => okayRoles.includes(role.id)).sort((a, z) => z.position - a.position).first()!.position >= (interactionOrMessage.member as GuildMember)!.roles.cache.filter((role) => okayRoles.includes(role.id)).sort((a, z) => z.position - a.position).first()!.position)
+    if (
+			member.roles.cache
+			  .filter((role) => !okayRoles.includes(role.id))
+			  .sort((a, z) => z.position - a.position)
+			  .first()!.position >=
+			(interactionOrMessage.member as GuildMember)!.roles.cache
+			  .filter((role) => !okayRoles.includes(role.id))
+			  .sort((a, z) => z.position - a.position)
+			  .first()!.position
+    )
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You can't kick a member that has a higher/equal role to you.").setColor(colors.danger)]
       });

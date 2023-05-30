@@ -111,11 +111,11 @@ export class UserCommand extends Command {
     if (
       member.id !== (interactionOrMessage.member as GuildMember).id &&
 			member.roles.cache
-			  .filter((role) => okayRoles.includes(role.id))
+			  .filter((role) => !okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
 			  .first()!.position >=
 				(interactionOrMessage.member as GuildMember).roles.cache
-				  .filter((role) => okayRoles.includes(role.id))
+				  .filter((role) => !okayRoles.includes(role.id))
 				  .sort((a, z) => z.position - a.position)
 				  .first()!.position
     )

@@ -53,25 +53,24 @@ export class UserCommand extends Command {
   }
 
   private async respond(interactionOrMessage: Message | Command.ChatInputCommandInteraction, args?: Args) {
-    const user =
-			interactionOrMessage instanceof Message ? await args!.pick("user").catch(() => null) : interactionOrMessage.options.getUser("user");
+    const member =
+			interactionOrMessage instanceof Message
+			  ? await args!.pick("member").catch(() => null)
+			  : (interactionOrMessage.options.getMember("user") as GuildMember | null);
 
     const moderator = interactionOrMessage instanceof Message ? interactionOrMessage.author : interactionOrMessage.user;
 
-    if (!user)
+    if (!member)
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You need to specify a user.").setColor(colors.danger)]
       });
-
-    const member = interactionOrMessage.guild!.members.cache.get(user.id);
-
     if (
-			member!.roles.cache
-			  .filter((role) => okayRoles.includes(role.id))
+			member.roles.cache
+			  .filter((role) => !!okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
 			  .first()!.position >=
 			(interactionOrMessage.member as GuildMember)!.roles.cache
-			  .filter((role) => okayRoles.includes(role.id))
+			  .filter((role) => !okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
 			  .first()!.position
     )
@@ -79,7 +78,7 @@ export class UserCommand extends Command {
         embeds: [new EmbedBuilder().setDescription("You can't warn a user that has a higher/equal role to you.").setColor(colors.danger)]
       });
 
-    if (!member!.manageable)
+    if (!member.manageable)
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("I can't warn that user.").setColor(colors.danger)]
       });
@@ -91,10 +90,10 @@ export class UserCommand extends Command {
 
     await db.user.upsert({
       where: {
-        id: user.id
+        id: member.id
       },
       create: {
-        id: user.id
+        id: member.id
       },
       update: {}
     });
@@ -103,27 +102,29 @@ export class UserCommand extends Command {
       data: {
         reason,
         type: PunishmentType.Warn,
-        userId: user.id,
+        userId: member.id,
         moderatorId: moderator.id
       }
     });
 
-    user.send({
-      embeds: [
-        new EmbedBuilder()
-          .setDescription(
-            [
-              `You've been warned in **${interactionOrMessage.guild!.name}**.`,
-              `**Moderator**: ${moderator.tag}`,
-              `**Reason**: ${reason}`
-            ].join("\n")
-          )
-          .setColor(colors.danger)
-      ]
-    }).catch(() => this.container.client.logger.warn(`Couldn't DM ${user.tag}.`));
+    member
+      .send({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              [
+                `You've been warned in **${interactionOrMessage.guild!.name}**.`,
+                `**Moderator**: ${moderator.tag}`,
+                `**Reason**: ${reason}`
+              ].join("\n")
+            )
+            .setColor(colors.danger)
+        ]
+      })
+      .catch(() => this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`));
 
     return reply(interactionOrMessage, {
-      embeds: [new EmbedBuilder().setDescription(`**${user.tag}** has been warned.`).setColor(colors.success)]
+      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been warned.`).setColor(colors.success)]
     });
   }
 }

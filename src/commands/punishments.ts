@@ -49,7 +49,12 @@ export class UserCommand extends Command {
     const currentUser = interactionOrMessage instanceof Message ? interactionOrMessage.author : interactionOrMessage.user;
 
     const user =
-			interactionOrMessage instanceof Message ? await args!.pick("user").catch(() => null) : interactionOrMessage.options.getUser("user");
+			interactionOrMessage instanceof Message
+			  ? await args!
+			    .pick("member")
+			    .then((member) => member.user)
+			    .catch(() => null)
+			  : interactionOrMessage.options.getUser("user");
 
     if (user && !interactionOrMessage.member!.permissions.has("KickMembers"))
       return reply(interactionOrMessage, {
