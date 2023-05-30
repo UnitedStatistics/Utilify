@@ -17,7 +17,7 @@ export enum PunishmentType {
 	Ban
 }
 
-export const punishmentTypes: { [key: number]: string } = {
+export const punishmentTypes: { [key: number]: keyof typeof PunishmentType } = {
   [PunishmentType.Warn]: "Warn",
   [PunishmentType.Mute]: "Mute",
   [PunishmentType.Kick]: "Kick",
