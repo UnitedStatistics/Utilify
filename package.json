@@ -6,6 +6,7 @@
 	"license": "UNLICENSE",
 	"type": "commonjs",
 	"dependencies": {
+		"@androz2091/discord-invites-tracker": "^1.2.3",
 		"@prisma/client": "^4.14.1",
 		"@sapphire/decorators": "^6.0.1",
 		"@sapphire/discord.js-utilities": "6.0.7",

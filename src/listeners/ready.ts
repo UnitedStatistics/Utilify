@@ -1,3 +1,4 @@
+import { init } from "@androz2091/discord-invites-tracker";
 import { ApplyOptions } from "@sapphire/decorators";
 import type { Store } from "@sapphire/framework";
 import { Listener } from "@sapphire/framework";
@@ -13,6 +14,32 @@ export class UserEvent extends Listener {
   public run() {
     this.printBanner();
     this.printStoreDebugInformation();
+
+    const tracker = init(this.container.client, {
+      fetchGuilds: true,
+      fetchVanity: true,
+      fetchAuditLogs: true
+    });
+
+    tracker.on("guildMemberAdd", async (member, type, invite) => {
+      if (member.guild.id !== "941671046724091968") return;
+
+      const channel = await this.container.client.channels.fetch("1028624014534529085");
+      if (!channel || !channel.isTextBased()) return;
+
+      switch (type) {
+      case "normal":
+        {
+          channel.send(`**${member.user.tag}** has joined the server. They were invited by **${invite!.inviter?.tag}**.`);
+        }
+        break;
+      default:
+        {
+          channel.send(`**${member.user.tag}** has joined the server.`);
+        }
+        break;
+      }
+    });
   }
 
   private printBanner() {
