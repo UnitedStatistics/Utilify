@@ -4,9 +4,9 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import { ApplicationCommandOptionType, ChannelType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
 import ms from "ms";
-import { colors } from "../consts";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import { colors } from "../../consts";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
   description: "Update the slowmode in a channel.",

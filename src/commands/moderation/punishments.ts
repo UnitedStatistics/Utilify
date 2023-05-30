@@ -4,10 +4,10 @@ import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message } from "discord.js";
 import ms from "ms";
-import { PunishmentType, colors, punishmentTypes } from "../consts";
-import { db } from "../lib/db";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import { PunishmentType, colors, punishmentTypes } from "../../consts";
+import { db } from "../../lib/db";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
   description: "Check the punishments you've recieved."

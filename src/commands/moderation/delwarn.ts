@@ -2,10 +2,10 @@ import { ApplyOptions } from "@sapphire/decorators";
 import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { PunishmentType, colors } from "../consts";
-import { db } from "../lib/db";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import { PunishmentType, colors } from "../../consts";
+import { db } from "../../lib/db";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
   description: "Remove a warn from someone.",

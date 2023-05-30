@@ -3,10 +3,10 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message } from "discord.js";
-import { PunishmentType, colors } from "../consts";
-import { db } from "../lib/db";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import { PunishmentType, colors } from "../../consts";
+import { db } from "../../lib/db";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
   description: "Check the warnings you've recieved."

@@ -3,9 +3,9 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { colors, okayRoles } from "../consts";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import { colors, okayRoles } from "../../consts";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
   description: "Manage a user's roles.",

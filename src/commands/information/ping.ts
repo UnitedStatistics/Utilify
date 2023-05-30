@@ -1,7 +1,7 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command } from "@sapphire/framework";
 import { Message } from "discord.js";
-import { getGuildId } from "../lib/utils/getGuildId";
+import { getGuildId } from "../../lib/utils/getGuildId";
 
 @ApplyOptions<Command.Options>({
   description: "ping pong"
@@ -10,12 +10,15 @@ export class UserCommand extends Command {
   // Register Chat Input and Context Menu command
   public override registerApplicationCommands(registry: Command.Registry) {
     // Register Chat Input command
-    registry.registerChatInputCommand({
-      name: this.name,
-      description: this.description
-    }, {
-      guildIds: getGuildId()
-    });
+    registry.registerChatInputCommand(
+      {
+        name: this.name,
+        description: this.description
+      },
+      {
+        guildIds: getGuildId()
+      }
+    );
   }
 
   // Message command

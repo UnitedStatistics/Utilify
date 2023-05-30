@@ -3,14 +3,14 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { PunishmentType, colors, okayRoles } from "../consts";
-import { db } from "../lib/db";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import { PunishmentType, colors, okayRoles } from "../../consts";
+import { db } from "../../lib/db";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
-  description: "Warn a user.",
-  requiredUserPermissions: ["KickMembers"]
+  description: "Ban a user.",
+  requiredUserPermissions: ["BanMembers"]
 })
 export class UserCommand extends Command {
   // Register Chat Input and Context Menu command
@@ -23,18 +23,18 @@ export class UserCommand extends Command {
         options: [
           {
             name: "user",
-            description: "The user to warn.",
+            description: "The user to ban.",
             type: ApplicationCommandOptionType.User,
             required: true
           },
           {
             name: "reason",
-            description: "Why you want to warn this user.",
+            description: "Why you want to ban this user.",
             type: ApplicationCommandOptionType.String,
             required: false
           }
         ],
-        defaultMemberPermissions: [PermissionFlagsBits.KickMembers]
+        defaultMemberPermissions: [PermissionFlagsBits.BanMembers]
       },
       {
         guildIds: getGuildId()
@@ -62,11 +62,12 @@ export class UserCommand extends Command {
 
     if (!member)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You need to specify a user.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You need to specify a member.").setColor(colors.danger)]
       });
+
     if (
 			member.roles.cache
-			  .filter((role) => !!okayRoles.includes(role.id))
+			  .filter((role) => !okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
 			  .first()!.position >=
 			(interactionOrMessage.member as GuildMember)!.roles.cache
@@ -75,12 +76,12 @@ export class UserCommand extends Command {
 			  .first()!.position
     )
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You can't warn a user that has a higher/equal role to you.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You can't ban a member that has a higher/equal role to you.").setColor(colors.danger)]
       });
 
-    if (!member.manageable)
+    if (!member.bannable)
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("I can't warn that user.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("I can't ban that member.").setColor(colors.danger)]
       });
 
     const reason =
@@ -88,32 +89,13 @@ export class UserCommand extends Command {
 			  ? await args!.rest("string").catch(() => null)
 			  : interactionOrMessage.options.getString("reason")) || "No reason specified.";
 
-    await db.user.upsert({
-      where: {
-        id: member.id
-      },
-      create: {
-        id: member.id
-      },
-      update: {}
-    });
-
-    await db.punishment.create({
-      data: {
-        reason,
-        type: PunishmentType.Warn,
-        userId: member.id,
-        moderatorId: moderator.id
-      }
-    });
-
     member
       .send({
         embeds: [
           new EmbedBuilder()
             .setDescription(
               [
-                `You've been warned in **${interactionOrMessage.guild!.name}**.`,
+                `You've been banned from **${interactionOrMessage.guild!.name}**.`,
                 `**Moderator**: ${moderator.tag}`,
                 `**Reason**: ${reason}`
               ].join("\n")
@@ -123,8 +105,29 @@ export class UserCommand extends Command {
       })
       .catch(() => this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`));
 
+    member.ban({ reason });
+
+    await db.user.upsert({
+      where: {
+        id: member.user.id
+      },
+      create: {
+        id: member.user.id
+      },
+      update: {}
+    });
+
+    await db.punishment.create({
+      data: {
+        reason,
+        type: PunishmentType.Ban,
+        userId: member.id,
+        moderatorId: moderator.id
+      }
+    });
+
     return reply(interactionOrMessage, {
-      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been warned.`).setColor(colors.success)]
+      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been banned.`).setColor(colors.success)]
     });
   }
 }

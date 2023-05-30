@@ -3,12 +3,14 @@ import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
 import type { GuildMember } from "discord.js";
 import { ApplicationCommandOptionType, EmbedBuilder, Message, PermissionFlagsBits } from "discord.js";
-import { colors, okayRoles } from "../consts";
-import { getGuildId } from "../lib/utils/getGuildId";
-import { reply } from "../lib/utils/reply";
+import ms from "ms";
+import { PunishmentType, colors, okayRoles } from "../../consts";
+import { db } from "../../lib/db";
+import { getGuildId } from "../../lib/utils/getGuildId";
+import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
-  description: "Unmute a user.",
+  description: "Mute a user.",
   requiredUserPermissions: ["MuteMembers"]
 })
 export class UserCommand extends Command {
@@ -22,13 +24,19 @@ export class UserCommand extends Command {
         options: [
           {
             name: "user",
-            description: "The user to unmute.",
+            description: "The user to mute.",
             type: ApplicationCommandOptionType.User,
             required: true
           },
           {
+            name: "length",
+            description: "How long this user should be muted.",
+            type: ApplicationCommandOptionType.String,
+            required: true
+          },
+          {
             name: "reason",
-            description: "Why you want to unmute this user.",
+            description: "Why you want to mute this user.",
             type: ApplicationCommandOptionType.String,
             required: false
           }
@@ -75,7 +83,7 @@ export class UserCommand extends Command {
 			  .first()!.position
     )
       return reply(interactionOrMessage, {
-        embeds: [new EmbedBuilder().setDescription("You can't unmute a user that has a higher/equal role to you.").setColor(colors.danger)]
+        embeds: [new EmbedBuilder().setDescription("You can't mute a user that has a higher/equal role to you.").setColor(colors.danger)]
       });
 
     if (!member.moderatable)
@@ -83,12 +91,40 @@ export class UserCommand extends Command {
         embeds: [new EmbedBuilder().setDescription("I can't mute that user.").setColor(colors.danger)]
       });
 
+    const length =
+			interactionOrMessage instanceof Message ? await args!.pick("string").catch(() => null) : interactionOrMessage.options.getString("length");
+
+    if (!length)
+      return reply(interactionOrMessage, {
+        embeds: [new EmbedBuilder().setDescription("You have to specify a length.").setColor(colors.danger)]
+      });
+
     const reason =
 			(interactionOrMessage instanceof Message
 			  ? await args!.rest("string").catch(() => null)
 			  : interactionOrMessage.options.getString("reason")) || "No reason specified.";
 
-    member.timeout(null, reason);
+    member.timeout(ms(length), reason);
+
+    await db.user.upsert({
+      where: {
+        id: member.user.id
+      },
+      create: {
+        id: member.user.id
+      },
+      update: {}
+    });
+
+    await db.punishment.create({
+      data: {
+        reason,
+        type: PunishmentType.Mute,
+        length: ms(length),
+        userId: member.id,
+        moderatorId: moderator.id
+      }
+    });
 
     member
       .send({
@@ -96,8 +132,9 @@ export class UserCommand extends Command {
           new EmbedBuilder()
             .setDescription(
               [
-                `You've been unmuted in **${interactionOrMessage.guild!.name}**.`,
+                `You've been muted in **${interactionOrMessage.guild!.name}**.`,
                 `**Moderator**: ${moderator.tag}`,
+                `**Length**: ${ms(ms(length), { long: true })}`,
                 `**Reason**: ${reason}`
               ].join("\n")
             )
@@ -107,7 +144,15 @@ export class UserCommand extends Command {
       .catch(() => this.container.client.logger.warn(`Couldn't DM ${member.user.tag}.`));
 
     return reply(interactionOrMessage, {
-      embeds: [new EmbedBuilder().setDescription(`**${member.user.tag}** has been unmuted.`).setColor(colors.success)]
+      embeds: [
+        new EmbedBuilder()
+          .setDescription(
+            `**${member.user.tag}** has been muted for **${ms(ms(length), {
+              long: true
+            })}**.`
+          )
+          .setColor(colors.success)
+      ]
     });
   }
 }
