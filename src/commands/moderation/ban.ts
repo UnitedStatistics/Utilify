@@ -65,15 +65,22 @@ export class UserCommand extends Command {
         embeds: [new EmbedBuilder().setDescription("You need to specify a member.").setColor(colors.danger)]
       });
 
-    if (
-			member.roles.cache
-			  .filter((role) => !okayRoles.includes(role.id))
-			  .sort((a, z) => z.position - a.position)
-			  .first()!.position >=
+    console.log(
 			(interactionOrMessage.member as GuildMember)!.roles.cache
 			  .filter((role) => !okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
-			  .first()!.position
+			  .first()?.name
+    );
+
+    if (
+      (member.roles.cache
+        .filter((role) => !okayRoles.includes(role.id))
+        .sort((a, z) => z.position - a.position)
+        .first()?.position || 0) >=
+			((interactionOrMessage.member as GuildMember)!.roles.cache
+			  .filter((role) => !okayRoles.includes(role.id))
+			  .sort((a, z) => z.position - a.position)
+			  .first()?.position || 0)
     )
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You can't ban a member that has a higher/equal role to you.").setColor(colors.danger)]

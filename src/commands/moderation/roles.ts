@@ -110,14 +110,14 @@ export class UserCommand extends Command {
 
     if (
       member.id !== (interactionOrMessage.member as GuildMember).id &&
-			member.roles.cache
-			  .filter((role) => !okayRoles.includes(role.id))
+			(member.roles.cache
+			  .filter((role) => !!okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
-			  .first()!.position >=
-				(interactionOrMessage.member as GuildMember).roles.cache
+			  .first()?.position || 0) >=
+				((interactionOrMessage.member as GuildMember)!.roles.cache
 				  .filter((role) => !okayRoles.includes(role.id))
 				  .sort((a, z) => z.position - a.position)
-				  .first()!.position
+				  .first()?.position || 0)
     )
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("That user has roles that are higher/equal to yours.")]

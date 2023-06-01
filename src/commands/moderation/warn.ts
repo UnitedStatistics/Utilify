@@ -64,15 +64,16 @@ export class UserCommand extends Command {
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You need to specify a user.").setColor(colors.danger)]
       });
+
     if (
-			member.roles.cache
-			  .filter((role) => !!okayRoles.includes(role.id))
-			  .sort((a, z) => z.position - a.position)
-			  .first()!.position >=
-			(interactionOrMessage.member as GuildMember)!.roles.cache
+      (member.roles.cache
+        .filter((role) => !!okayRoles.includes(role.id))
+        .sort((a, z) => z.position - a.position)
+        .first()?.position || 0) >=
+			((interactionOrMessage.member as GuildMember)!.roles.cache
 			  .filter((role) => !okayRoles.includes(role.id))
 			  .sort((a, z) => z.position - a.position)
-			  .first()!.position
+			  .first()?.position || 0)
     )
       return reply(interactionOrMessage, {
         embeds: [new EmbedBuilder().setDescription("You can't warn a user that has a higher/equal role to you.").setColor(colors.danger)]
