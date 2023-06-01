@@ -9,7 +9,7 @@ import { getGuildId } from "../../lib/utils/getGuildId";
 import { reply } from "../../lib/utils/reply";
 
 @ApplyOptions<Command.Options>({
-  description: "Check the warnings you've recieved."
+  description: "Check the warnings you or someone else has recieved."
 })
 export class UserCommand extends Command {
   // Register Chat Input and Context Menu command
