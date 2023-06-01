@@ -8,6 +8,5 @@
 	"editor.tabSize": 2,
 	"editor.insertSpaces": true,
 	"editor.detectIndentation": false,
-	"prettier.prettierPath": "./node_modules/prettier",
-	"typescript.preferences.importModuleSpecifierEnding": "js"
+	"prettier.prettierPath": "./node_modules/prettier"
 }
