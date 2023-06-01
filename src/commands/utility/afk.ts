@@ -78,7 +78,7 @@ export class UserCommand extends Command {
           where: {
             userId: user.id
           }
-        })) > 1
+        })) >= 1
       )
         return this.clearAfkStatus(interactionOrMessage, user);
 
@@ -112,6 +112,9 @@ export class UserCommand extends Command {
       }
     });
 
+    const member = interactionOrMessage.guild!.members.cache.get(user.id);
+    if (member && member.manageable) member.setNickname(`[AFK] ${member.displayName}`);
+
     return reply(interactionOrMessage, {
       embeds: [new EmbedBuilder().setDescription("Your AFK status has been set.").setColor(colors.success)],
       ephemeral: true
@@ -124,6 +127,10 @@ export class UserCommand extends Command {
         userId: user.id
       }
     });
+
+    const member = interactionOrMessage.guild!.members.cache.get(user.id);
+    console.log(member);
+    if (member && member.manageable) member.setNickname(member.displayName.replace(/\[AFK\] /g, ""));
 
     return reply(interactionOrMessage, {
       embeds: [new EmbedBuilder().setDescription("Your AFK status has been cleared.").setColor(colors.success)],
