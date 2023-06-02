@@ -1,7 +1,8 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import type { Args } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
-import { ApplicationCommandOptionType, EmbedBuilder, Message } from "discord.js";
+import type { GuildMember } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
 import { colors } from "../../consts";
 import { getGuildId } from "../../lib/utils/getGuildId";
 
@@ -51,8 +52,12 @@ export class UserCommand extends Command {
 
     if (!content) return;
 
+    let message: Message;
+
     if (interactionOrMessage instanceof Message && interactionOrMessage.reference)
-      (await interactionOrMessage.fetchReference()).reply({
+      message = await (
+        await interactionOrMessage.fetchReference()
+      ).reply({
         content,
         allowedMentions: {
           parse: [],
@@ -61,14 +66,35 @@ export class UserCommand extends Command {
         }
       });
     else
-			interactionOrMessage.channel!.send({
-			  content,
-			  allowedMentions: {
-			    parse: [],
-			    users: [],
-			    roles: []
-			  }
-			});
+      message = await interactionOrMessage.channel!.send({
+        content,
+        allowedMentions: {
+          parse: [],
+          users: [],
+          roles: []
+        }
+      });
+
+    const logsChannel = await this.container.client.channels.fetch("1028926450377699349");
+    if (logsChannel && !logsChannel.isDMBased() && logsChannel.isTextBased())
+      logsChannel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle("Sent message through me")
+            .setDescription([`**Message**: ${content}`, `**Channel**: ${message.channel}`].join("\n"))
+            .setFooter({
+              text: (interactionOrMessage.member as GuildMember).displayName,
+              iconURL: (interactionOrMessage.member as GuildMember).displayAvatarURL()
+            })
+            .setTimestamp()
+            .setColor(colors.primary)
+        ],
+        components: [
+          new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder().setLabel("View message").setStyle(ButtonStyle.Link).setURL(message.url)
+          )
+        ]
+      });
 
     if (interactionOrMessage instanceof Message) return;
     else
