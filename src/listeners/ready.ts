@@ -30,12 +30,12 @@ export class UserEvent extends Listener {
       switch (type) {
       case "normal":
         {
-          channel.send(`**${member.user.tag}** has joined the server. They were invited by **${invite!.inviter?.tag}**.`);
+          channel.send(`<@${member.user.id}> has joined the server. They were invited by <@${invite!.inviter?.id}>.`);
         }
         break;
       default:
         {
-          channel.send(`**${member.user.tag}** has joined the server.`);
+          channel.send(`<@${member.user.id}> has joined the server.`);
         }
         break;
       }
