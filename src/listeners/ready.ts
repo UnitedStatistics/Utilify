@@ -30,12 +30,28 @@ export class UserEvent extends Listener {
       switch (type) {
       case "normal":
         {
-          channel.send(`<@${member.user.id}> has joined the server. They were invited by <@${invite!.inviter?.id}>.`);
+          channel.send({
+            content: `<@${member.user.id}> has joined the server. They were invited by <@${invite!.inviter?.id}>.`,
+            allowedMentions: {
+              parse: [],
+              users: [],
+              roles: [],
+              repliedUser: false
+            }
+          });
         }
         break;
       default:
         {
-          channel.send(`<@${member.user.id}> has joined the server.`);
+          channel.send({
+            content: `<@${member.user.id}> has joined the server.`,
+            allowedMentions: {
+              parse: [],
+              users: [],
+              roles: [],
+              repliedUser: false
+            }
+          });
         }
         break;
       }
